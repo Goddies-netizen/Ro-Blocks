@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D MRT - Gabungan Final</title>
+    <style>
+        /* =========================================================
+           CSS GABUNGAN (FILE 4 & FILE 3)
+           ========================================================= */
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; user-select: none; }
+        
+        /* OVERLAY HALAMAN INSTRUKSI (DOKUMEN) */
+        #instruction-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #e0e0e0; z-index: 3000; overflow-y: scroll;
+            font-family: 'Times New Roman', Times, serif; color: black; user-select: text;
+        }
+        .document-paper {
+            background-color: white; max-width: 800px; margin: 40px auto;
+            padding: 60px; box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            min-height: 100vh; position: relative;
+        }
+        .doc-images { text-align: center; margin-bottom: 40px; }
+        .doc-images img { max-width: 90%; margin-bottom: 20px; border: 1px solid #ccc; }
+        .doc-text { font-size: 18px; line-height: 1.8; text-align: justify; }
+        .doc-text ul { padding-left: 20px; }
+        .doc-text li { margin-bottom: 10px; }
+        .btn-paham {
+            display: block; width: 200px; margin: 50px auto 0; padding: 15px;
+            background-color: #2c3e50; color: white; border: none; font-size: 18px;
+            cursor: pointer; border-radius: 5px; font-family: Arial, sans-serif; font-weight: bold;
+        }
+        .btn-paham:hover { background-color: #1a252f; }
+
+        /* MODAL KONFIRMASI UMUM */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 3100; align-items: center; justify-content: center;
+            font-family: Arial, sans-serif; user-select: none;
+        }
+        .modal-box { background: white; padding: 30px; border-radius: 8px; text-align: center; max-width: 400px; color: black; }
+        .modal-btns { display: flex; justify-content: space-around; margin-top: 30px; }
+        .modal-btn { padding: 10px 25px; border: none; font-size: 16px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .btn-no { background: #bdc3c7; color: black; }
+        .btn-yes { background: #e74c3c; color: white; }
+
+        /* OVERLAY SESI COBA-COBA (TRYOUT) */
+        #tryout-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #050505; z-index: 2000; font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        #tryout-canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #tryout-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .tryout-header { text-align: center; margin-top: 30px; font-size: 24px; color: #00ffcc; text-shadow: 0 0 15px #00ffcc; font-weight: bold; }
+        .tryout-sub { font-size: 16px; color: #ccc; text-shadow: none; font-weight: normal; margin-top: 10px; }
+        .btn-tryout-paham {
+            position: absolute; bottom: 40px; right: 40px; padding: 15px 30px;
+            background: #00ffcc; border: none; border-radius: 5px; color: #000;
+            font-weight: bold; cursor: pointer; font-size: 16px; pointer-events: auto;
+        }
+        .btn-tryout-paham:hover { background: #00ccaa; }
+
+        /* LAYER LOGIN & COUNTDOWN */
+        #login-screen {
+            position: absolute; width: 100%; height: 100%; background: #0a0a0a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .login-box { background: #151515; padding: 40px; border-radius: 15px; border: 1px solid #00ffcc; text-align: center; box-shadow: 0 0 30px rgba(0,255,204,0.1); }
+        input { padding: 12px; width: 250px; border-radius: 5px; border: 1px solid #333; background: #222; color: #fff; font-size: 16px; margin-top: 15px; text-align: center; }
+        input:focus { outline: none; border-color: #00ffcc; }
+        button { padding: 12px 30px; background: #00ffcc; border: none; border-radius: 5px; color: #000; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; transition: 0.2s; }
+        button:hover { background: #00ccaa; }
+
+        #countdown-screen {
+            position: absolute; width: 100%; height: 100%; background: #050505;
+            display: flex; align-items: center; justify-content: center; z-index: 900;
+            display: none; font-size: 150px; font-weight: bold; color: #00ffcc; text-shadow: 0 0 30px #00ffcc;
+        }
+
+        /* UI LAYER GAME UTAMA (Persis dari File 3) */
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        #header { display: flex; justify-content: space-between; padding: 20px 40px; font-size: 20px; font-weight: bold; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.1); pointer-events: auto; }
+        #queue-container { position: absolute; top: 50%; left: 30px; transform: translateY(-50%); background: rgba(20,20,20,0.9); padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; width: 60px; text-align: center; }
+        #queue-list { font-size: 35px; min-height: 40px; }
+        .queue-item { margin-bottom: 8px; color: #00ffcc; text-shadow: 0 0 10px #00ffcc; animation: slideIn 0.2s ease; font-weight: 300; }
+        #instructions { position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 14px; color: #aaa; background: rgba(0,0,0,0.2); padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.1); pointer-events: auto; letter-spacing: 1px; }
+        #feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; font-weight: bold; opacity: 0; transition: opacity 0.1s; z-index: 100; text-align: center; line-height: 1.3; }
+
+        /* UTILITAS TEKS & ANIMASI */
+        .text-neon { color: #00ffcc; text-shadow: 0 0 15px #00ffcc; }
+        .text-red { color: #ff0055; text-shadow: 0 0 15px #ff0055; }
+        .text-yellow { color: #ffcc00; text-shadow: 0 0 15px #ffcc00; }
+        kbd { background: #333; padding: 3px 8px; border-radius: 4px; color: #00ffcc; font-size: 13px; border: 1px solid #555; margin: 0 2px; font-weight: bold; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="instruction-screen">
+        <div class="document-paper">
+            <h1 style="text-align: center; margin-bottom: 40px; text-decoration: underline;">INSTRUKSI</h1>
+            
+            <div class="doc-text">
+                <p style="text-align: center; font-weight: bold; color: red;">Bermain wajib menggunakan laptop yang terhubung dengan internet</p>
+                
+                <div style="display: flex; align-items: flex-start; gap: 15px;">
+                    <div style="flex: 40%;">
+                        <ol style="margin-top: 0; margin-bottom: 0;">
+                            <li>Terdapat objek merah dan objek hijau</li>
+                            <li>Objek hijau adalah objek yang berfungsi mencocokkan objek merah</li>
+                            <li>Anda harus membayangkan dikepalamu agar objek hijau bisa cocok dengan objek merah sembari objek hijau menghampiri objek merah</li>
+                        </ol>
+                    </div>
+                    <div style="flex: 60%; text-align: center;">
+                        <img src="Contoh Soal.png" alt="Contoh Soal" style="max-width: 100%; border: 1px solid #ccc;">
+                    </div>
+                </div>
+
+                <ol start="4" style="margin-top: 10px;">
+                    <li>Waktu yang diberikan setiap soal adalah 20 detik</li>
+                    <li>Objek hanya berotasi 45° per 1x rotasi dan W, A, S, D, Q, E adalah mekanisme untuk objek berputar/berotasi</li>
+                    
+                    <li>
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <div style="flex: 40%; word-wrap: break-word; padding-right: 5px;">
+                                Mekanisme W, A, S, D, Q, E<br>
+                                W & S adalah tombol untuk rotasi secara vertikal<br>
+                                A & D adalah tombol untuk rotasi secara horizontal<br>
+                                Q & E adalah tombol untuk rotasi secara diagonal
+                                <ul style="padding-left: 15px; margin-top: 5px;">
+                                    <li>Tekan W untuk objek swipe kearah atas 45°</li>
+                                    <li>Tekan A untuk objek swipe kearah kiri 45°</li>
+                                    <li>Tekan S untuk objek swipe kearah bawah 45°</li>
+                                    <li>Tekan D untuk objek swipe kearah kanan 45°</li>
+                                    <li>Tekan Q untuk objek berputar kearah kiri/kebalikan arah jarum jam 45°</li>
+                                    <li>Tekan E untuk objek berputar kearah kanan/searah jarum jam 45°</li>
+                                </ul>
+                            </div>
+                            <div style="flex: 60%; text-align: center;">
+                                <img src="path98.png" alt="Sumbu Rotasi" style="max-width: 48%; margin: 2px; border: 1px solid #ccc;">
+                                <img src="path290.png" alt="Keyboard Map" style="max-width: 48%; margin: 2px; border: 1px solid #ccc;">
+                                <br>
+                                <img src="g184.png" alt="Gesture Map" style="max-width: 100%; margin: 5px 0; border: 1px solid #ccc;">
+                            </div>
+                        </div>
+                    </li>
+
+                    <li>Setelah selesai membayangkan di dalam kepala, tekan antara W, A, S, D, Q, E untuk menjawab</li>
+                    <li>Objek hijau tidak akan berotasi sebelum anda menekan "Enter". Apabila sudah menekan "Enter" maka anda tidak dapat mengubah jawaban, sehingga pastikan anda sudah yakin dengan jawaban anda</li>
+                    <li>Tekan "Enter" untuk mengunci jawaban. Apabila ingin mengganti jawaban tekanlah "Backspace"</li>
+                    <li>Terdapat 24 soal yang dibagi dari level Easy (8 soal), Medium (8 soal), dan Hard (8 soal)
+                        <ul>
+                            <li>Easy dapat diselesaikan dengan 1-2x rotasi antara vertikal atau horizontal</li>
+                            <li>Medium dapat diselesaikan 2x rotasi yaitu: 1x secara vertikal dan 1x secara horizontal</li>
+                            <li>Hard dapat diselesaikan dengan 3x rotasi yaitu: 1x rotasi vertikal, 1x rotasi horizontal, dan 1x rotasi diagonal</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <button class="btn-paham" onclick="showInstModal()">SAYA PAHAM</button>
+        </div>
+    </div>
+
+    <div id="inst-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top: 0;">Konfirmasi Instruksi</h3>
+            <p>Apakah Anda yakin sudah memahami instruksi dan siap melanjutkan ke sesi coba-coba kontrol?</p>
+            <div class="modal-btns">
+                <button class="modal-btn btn-no" onclick="hideInstModal()">Tidak</button>
+                <button class="modal-btn btn-yes" onclick="goToTryout()">Ya</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tryout-screen">
+        <div id="tryout-canvas-container"></div>
+        <div id="tryout-ui-layer">
+            <div class="tryout-header">
+                SESI COBA-COBA<br>
+                <div class="tryout-sub">Silahkan coba-coba kontrol. Objek hijau ini hanya berotasi dan tidak bergerak maju.<br>
+                Gunakan <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>Q</kbd><kbd>E</kbd> lalu tekan <kbd>ENTER</kbd>. <kbd>BACKSPACE</kbd> untuk hapus.</div>
+            </div>
+            
+            <div id="queue-container"> <div style="font-size: 10px; margin-bottom: 8px; color: #666; letter-spacing: 1px;">INPUT</div>
+                <div id="tryout-queue-list" style="font-size: 35px; min-height: 40px;"></div>
+            </div>
+
+            <button class="btn-tryout-paham" onclick="showTryoutModal()">SAYA PAHAM</button>
+        </div>
+    </div>
+
+    <div id="tryout-modal" class="modal-overlay" style="z-index: 3200;">
+        <div class="modal-box">
+            <h3 style="margin-top: 0;">Konfirmasi Selesai Coba-coba</h3>
+            <p>Apakah Anda sudah paham cara menggunakan kontrol dan siap masuk ke tes sebenarnya?</p>
+            <div class="modal-btns">
+                <button class="modal-btn btn-no" onclick="hideTryoutModal()">Belum</button>
+                <button class="modal-btn btn-yes" onclick="finishTryout()">Ya, Masuk Game</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 class="text-neon">14MRT</h2>
+            <p style="color: #ccc;">Silakan masukkan Nickname Anda untuk memulai:</p>
+            <input type="text" id="nickname-input" placeholder="Ketik di sini..." maxlength="20" autocomplete="off">
+            <br>
+            <button onclick="startCountdown()">MULAI TES</button>
+            <p style="font-size: 11px; color: #555; margin-top: 25px; letter-spacing: 1px;">ID PERANGKAT: <span id="device-id-label"></span></p>
+        </div>
+    </div>
+
+    <div id="countdown-screen">3</div>
+
+
+    <div id="ui-layer" style="display: none;">
+        <div id="header">
+            <div>SOAL: <span id="level">1</span>/24 <span id="diff-label" class="text-neon">[EASY]</span></div>
+            <div>SKOR: <span id="score">0/24</span></div>
+        </div>
+        
+        <div id="queue-container">
+            <div style="font-size: 10px; margin-bottom: 8px; color: #666; letter-spacing: 1px;">INPUT</div>
+            <div id="queue-list"></div>
+        </div>
+        <div id="feedback">BERHASIL!</div>
+        <div id="instructions">
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>Q</kbd><kbd>E</kbd> KONTROL | <kbd>ENTER</kbd> KUNCI | <kbd>BACKSPACE</kbd> HAPUS
+        </div>
+    </div>
+
+    <script>
+        // -----------------------------------------------------------
+        // SCRIPT 1: LOGIKA TRANSISI & TRYOUT (DARI FILE 4)
+        // -----------------------------------------------------------
+        function showInstModal() { document.getElementById('inst-modal').style.display = 'flex'; }
+        function hideInstModal() { document.getElementById('inst-modal').style.display = 'none'; }
+        
+        function goToTryout() {
+            document.getElementById('inst-modal').style.display = 'none';
+            document.getElementById('instruction-screen').style.display = 'none';
+            document.getElementById('tryout-screen').style.display = 'block';
+            initTryoutEngine();
+        }
+
+        function showTryoutModal() { document.getElementById('tryout-modal').style.display = 'flex'; }
+        function hideTryoutModal() { document.getElementById('tryout-modal').style.display = 'none'; }
+
+        function finishTryout() {
+            document.getElementById('tryout-modal').style.display = 'none';
+            document.getElementById('tryout-screen').style.display = 'none';
+            cancelAnimationFrame(tryoutAnimationReq);
+            document.removeEventListener('keydown', tryoutKeyHandler);
+            document.getElementById('tryout-canvas-container').innerHTML = ''; 
+        }
+
+        // Engine 3D Khusus Tryout
+        let tScene, tCamera, tRenderer, tObj, tQueue = [], tAnimating = false, tRotIdx = 0, tProgress = 0;
+        let tStartQ = new THREE.Quaternion(), tEndQ = new THREE.Quaternion();
+        let tryoutAnimationReq;
+        const tClock = new THREE.Clock();
+
+        const tActions = [
+            { key: 'w', axis: new THREE.Vector3(1,0,0), ang: -Math.PI/4, icon: '↑' },
+            { key: 's', axis: new THREE.Vector3(1,0,0), ang: Math.PI/4, icon: '↓' },
+            { key: 'a', axis: new THREE.Vector3(0,1,0), ang: -Math.PI/4, icon: '←' },
+            { key: 'd', axis: new THREE.Vector3(0,1,0), ang: Math.PI/4, icon: '→' },
+            { key: 'q', axis: new THREE.Vector3(0,0,1), ang: Math.PI/4, icon: '⟲' },
+            { key: 'e', axis: new THREE.Vector3(0,0,1), ang: -Math.PI/4, icon: '⟳' }
+        ];
+
+        function initTryoutEngine() {
+            tScene = new THREE.Scene();
+            tCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            tCamera.position.set(0, 4, 14);
+            tCamera.lookAt(0, 0, 0);
+
+            tRenderer = new THREE.WebGLRenderer({ antialias: true });
+            tRenderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('tryout-canvas-container').appendChild(tRenderer.domElement);
+
+            tScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.PointLight(0xffffff, 1);
+            light.position.set(10, 10, 10);
+            tScene.add(light);
+
+            const group = new THREE.Group();
+            const blocks = [[0,0,0], [2,0,0], [-2,0,0], [-2,2,0], [2,0,2], [2,0,-2]];
+            const boxSize = 1.95; const scaleMulti = 1.2; 
+            const mat = new THREE.MeshPhongMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.6, shininess: 40 });
+            blocks.forEach(p => {
+                const cube = new THREE.Mesh(new THREE.BoxGeometry(boxSize, boxSize, boxSize), mat);
+                cube.position.set(...p);
+                const edges = new THREE.LineSegments(
+                    new THREE.EdgesGeometry(cube.geometry),
+                    new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+                );
+                cube.add(edges);
+                group.add(cube);
+            });
+            group.scale.set(scaleMulti, scaleMulti, scaleMulti);
+            group.position.set(0, 0, 0);
+            tObj = group;
+            tScene.add(tObj);
+
+            document.addEventListener('keydown', tryoutKeyHandler);
+            window.addEventListener('resize', tryoutResize);
+            animateTryoutEngine();
+        }
+
+        function tryoutKeyHandler(e) {
+            if(document.getElementById('tryout-screen').style.display === 'none') return;
+            if(tAnimating) return;
+
+            const k = e.key.toLowerCase();
+            let act = tActions.find(a => a.key === k);
+            
+            if (act) {
+                tQueue.push(act); updateTUI();
+            } else if (k === 'backspace') {
+                tQueue.pop(); updateTUI();
+            } else if (e.key === 'Enter') {
+                if (tQueue.length > 0) { tAnimating = true; tRotIdx = 0; prepareTRot(); }
+            }
+        }
+
+        function updateTUI() { document.getElementById('tryout-queue-list').innerHTML = tQueue.map(q => `<div class="queue-item">${q.icon}</div>`).join(''); }
+
+        function prepareTRot() {
+            let act = tQueue[tRotIdx]; tStartQ.copy(tObj.quaternion);
+            let qWorld = new THREE.Quaternion().setFromAxisAngle(act.axis, act.ang);
+            tEndQ.copy(qWorld).multiply(tStartQ); tProgress = 0;
+        }
+
+        function animateTryoutEngine() {
+            tryoutAnimationReq = requestAnimationFrame(animateTryoutEngine);
+            let delta = tClock.getDelta();
+
+            if (tAnimating) {
+                tProgress += delta * 6; if (tProgress >= 1) tProgress = 1;
+                tObj.quaternion.slerpQuaternions(tStartQ, tEndQ, tProgress);
+
+                if (tProgress === 1) {
+                    tRotIdx++;
+                    if (tRotIdx < tQueue.length) { prepareTRot(); } 
+                    else { tAnimating = false; tQueue = []; updateTUI(); }
+                }
+            }
+            tRenderer.render(tScene, tCamera);
+        }
+
+        function tryoutResize() {
+            if(document.getElementById('tryout-screen').style.display !== 'none' && tCamera && tRenderer) {
+                tCamera.aspect = window.innerWidth / window.innerHeight; tCamera.updateProjectionMatrix();
+                tRenderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        // Logic Device ID dari File 4
+        let devID = localStorage.getItem('mrt_device_id');
+        if(!devID) {
+            devID = 'MRT-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('mrt_device_id', devID);
+        }
+        document.getElementById('device-id-label').innerText = devID;
+
+        // Fungsi Hitung Mundur File 4
+        let nicknameUser = "";
+        function startCountdown() {
+            const nick = document.getElementById('nickname-input').value.trim();
+            if(!nick) { alert("Tolong masukkan Nickname Anda!"); return; }
+            nicknameUser = nick;
+
+            document.getElementById('login-screen').style.display = 'none';
+            const cdScreen = document.getElementById('countdown-screen');
+            cdScreen.style.display = 'flex';
+            
+            let count = 3; cdScreen.innerText = count;
+            
+            const countInterval = setInterval(() => {
+                count--;
+                if (count > 0) { cdScreen.innerText = count; } 
+                else if (count === 0) {
+                    cdScreen.innerText = "MULAI!"; cdScreen.style.color = "#ffcc00"; cdScreen.style.textShadow = "0 0 30px #ffcc00";
+                } else {
+                    clearInterval(countInterval);
+                    cdScreen.style.display = 'none';
+                    startGame(); // Memicu peluncuran Game Utama (File 3)
+                }
+            }, 1000);
+        }
+
+        // -----------------------------------------------------------
+        // SCRIPT 2: MESIN GAME UTAMA (DARI FILE 3 SEPENUHNYA)
+        // -----------------------------------------------------------
+        
+        const bentukDefault = [ [0, 0, 0], [2, 0, 0], [-2, 0, 0], [-2, 2, 0], [2, 0, 2], [2, 0, -2] ];
+        const bentukEasy = [ [0, 0, 0], [-2, 0, 0], [2, 0, 0] ];
+        const bentukEasy2 = [ [0, 0, 0], [-2, 0, 0], [2, 0, 0], [2, 0, -2] ];
+        const bentukEasy3 = [ [0, 0, 0], [-2, 0, 0], [2, 0, 0], [-2, 0, -2] ];
+        const bentukEasy4 = [ [0, 0, 0], [2, 0, 0], [-2, 0, 0], [-2, 0, 2], [2, 2, 0], [2, -2, 0] ];
+        const bentukEasy5 = [ [0, 0, 0], [2, 0, 0], [-2, 0, 0], [-2, 2, 0] ];
+        const bentukMedium = [ [0, 0, 0], [2, 0, 0], [-2, 0, 0], [2, 0, -4], [2, 0, 2], [2, 0, -2] ];
+
+        const durasiGlobalDefault = 20; 
+
+        let daftarEasy = [
+            { kunci: "W" }, { kunci: "s", bentuk: bentukEasy4 }, { kunci: "a", bentuk: bentukEasy4 }, 
+            { kunci: "d", bentuk: bentukEasy4 }, { kunci: "ww", bentuk: bentukEasy4 }, { kunci: "ss", bentuk: bentukEasy4 },
+            { kunci: "aa", bentuk: bentukEasy4 }, { kunci: "dd", bentuk: bentukEasy4 }
+        ];
+
+        let daftarMedium = [
+            { kunci: "wa", bentuk: bentukEasy4 }, { kunci: "wd", bentuk: bentukEasy5 }, { kunci: "sa", bentuk: bentukEasy4 },
+            { kunci: "sd", bentuk: bentukEasy5 }, { kunci: "aw", bentuk: bentukEasy5 }, { kunci: "dw", bentuk: bentukEasy5 },
+            { kunci: "as", bentuk: bentukEasy4 }, { kunci: "ds", bentuk: bentukEasy5 }
+        ];
+
+        let daftarHard = [
+            { kunci: "wdq", bentuk: bentukEasy5 }, { kunci: "sae", bentuk: bentukEasy5 }, { kunci: "wed", bentuk: bentukEasy5 },
+            { kunci: "sqa", bentuk: bentukEasy5 }, { kunci: "awe", bentuk: bentukEasy5 }, { kunci: "aew", bentuk: bentukEasy5 },
+            { kunci: "qsd", bentuk: bentukEasy5 }, { kunci: "qds", bentuk: bentukEasy5 }
+        ];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        shuffleArray(daftarEasy); shuffleArray(daftarMedium); shuffleArray(daftarHard);
+        daftarEasy.forEach(item => item.diff = 'EASY');
+        daftarMedium.forEach(item => item.diff = 'MEDIUM');
+        daftarHard.forEach(item => item.diff = 'HARD');
+        const masterItems = [...daftarEasy, ...daftarMedium, ...daftarHard];
+        const totalLevels = masterItems.length;
+
+        // Inisiasi Core Tampilan File 3
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 4, 14);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        // PENTING: Jangan tempelkan renderer ke body dulu, agar tidak merusak background layar Login.
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const mainLight = new THREE.PointLight(0xffffff, 1);
+        mainLight.position.set(10, 10, 10);
+        scene.add(mainLight);
+
+        let level = 1, score = 0, isLocked = false, isEvaluating = false, inputQueue = [];
+        let playerObj, targetGhost, isAnimatingRot = false, rotIndex = 0, rotProgress = 0;
+        let stepStartQ = new THREE.Quaternion(), stepEndQ = new THREE.Quaternion();
+
+        const rotStep = Math.PI / 4; 
+        const xAxis = new THREE.Vector3(1,0,0), yAxis = new THREE.Vector3(0,1,0), zAxis = new THREE.Vector3(0,0,1);
+        let travelSpeed = 0, rotSpeedMultiplier = 0, fastSpeed = 0;
+        const spawnZ = 8, targetZ = -2;
+
+        const actions = [
+            { key: 'w', axis: xAxis, ang: -rotStep, icon: '↑' }, { key: 's', axis: xAxis, ang: rotStep, icon: '↓' },
+            { key: 'a', axis: yAxis, ang: -rotStep, icon: '←' }, { key: 'd', axis: yAxis, ang: rotStep, icon: '→' },
+            { key: 'q', axis: zAxis, ang: rotStep, icon: '⟲' }, { key: 'e', axis: zAxis, ang: -rotStep, icon: '⟳' }
+        ];
+        const dummyWorld = new THREE.Object3D();
+        const clock = new THREE.Clock();
+
+        function createShape(color, isGhost, koordinatBalok) {
+            const group = new THREE.Group();
+            const boxSize = 1.95; const scaleMulti = 1.2; 
+            const mat = new THREE.MeshPhongMaterial({ 
+                color: color, transparent: true, opacity: isGhost ? 0.3 : 0.6, shininess: 40, depthWrite: !isGhost
+            });
+            koordinatBalok.forEach(p => {
+                const cube = new THREE.Mesh(new THREE.BoxGeometry(boxSize, boxSize, boxSize), mat);
+                cube.position.set(...p);
+                const edges = new THREE.LineSegments(
+                    new THREE.EdgesGeometry(cube.geometry),
+                    new THREE.LineBasicMaterial({ color: isGhost ? 0xff4444 : 0xffffff, transparent: true, opacity: 0.5 })
+                );
+                cube.add(edges); group.add(cube);
+            });
+            group.scale.set(scaleMulti, scaleMulti, scaleMulti);
+            return group;
+        }
+
+        function getFixedTarget() {
+            let currentItem = masterItems[level - 1]; 
+            let answerKey = currentItem.kunci.split('').map(k => k.toLowerCase());
+            dummyWorld.quaternion.identity(); 
+            answerKey.forEach(k => {
+                let act = actions.find(a => a.key === k);
+                if (act) dummyWorld.rotateOnWorldAxis(act.axis, act.ang);
+            });
+            return { q: dummyWorld.quaternion.clone() };
+        }
+
+        function setupLevel() {
+            if(playerObj) scene.remove(playerObj);
+            if(targetGhost) scene.remove(targetGhost);
+            
+            isLocked = false; isEvaluating = false; isAnimatingRot = false;
+            rotIndex = 0; rotProgress = 0; inputQueue = [];
+            updateUI();
+
+            let currentItem = masterItems[level - 1];
+            let durasiAktif = currentItem.durasi || durasiGlobalDefault;
+            travelSpeed = (spawnZ - targetZ) / durasiAktif; 
+            rotSpeedMultiplier = 120 / durasiAktif; 
+            fastSpeed = travelSpeed * 50; 
+
+            let koordinatAktif = currentItem.bentuk || bentukDefault;
+            playerObj = createShape(0x00ffcc, false, koordinatAktif);
+            targetGhost = createShape(0xff0055, true, koordinatAktif);
+
+            let targetData = getFixedTarget();
+            targetGhost.quaternion.copy(targetData.q);
+            
+            playerObj.position.set(0, 0, spawnZ); targetGhost.position.set(0, 0, targetZ);
+            scene.add(playerObj); scene.add(targetGhost);
+        }
+
+        function updateUI() {
+            document.getElementById('level').innerText = level;
+            document.getElementById('score').innerText = `${score}/${totalLevels}`;
+            document.getElementById('queue-list').innerHTML = inputQueue.map(q => `<div class="queue-item">${q.icon}</div>`).join('');
+            
+            const dl = document.getElementById('diff-label');
+            let currentItem = masterItems[level - 1];
+            if (currentItem) {
+                dl.innerText = `[${currentItem.diff}]`;
+                if (currentItem.diff === 'EASY') dl.className = "text-neon";
+                else if (currentItem.diff === 'MEDIUM') dl.className = "text-yellow";
+                else dl.className = "text-red";
+            }
+        }
+
+        function prepareRotationStep() {
+            let action = inputQueue[rotIndex]; stepStartQ.copy(playerObj.quaternion);
+            let qWorld = new THREE.Quaternion().setFromAxisAngle(action.axis, action.ang);
+            stepEndQ.copy(qWorld).multiply(stepStartQ); rotProgress = 0;
+        }
+
+        // Fungsi pendeteksi Keyboard dibungkus agar tidak aktif saat Tryout
+        function mainGameKeyHandler(e) {
+            if (isLocked || isEvaluating || level > totalLevels) return;
+            const k = e.key.toLowerCase();
+            let act = actions.find(a => a.key === k);
+            
+            if (act) {
+                inputQueue.push(act);
+            } else if (k === 'backspace') {
+                inputQueue.pop();
+            } else if (e.key === 'Enter') {
+                if (!isLocked) {
+                    isLocked = true;
+                    if (inputQueue.length > 0) { isAnimatingRot = true; rotIndex = 0; prepareRotationStep(); } 
+                    else { isAnimatingRot = false; }
+                }
+            }
+            updateUI();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            let delta = clock.getDelta(); 
+
+            if (!isEvaluating && level <= totalLevels) {
+                if (isAnimatingRot) {
+                    rotProgress += delta * rotSpeedMultiplier; 
+                    if (rotProgress >= 1) rotProgress = 1;
+                    playerObj.quaternion.slerpQuaternions(stepStartQ, stepEndQ, rotProgress);
+
+                    if (rotProgress === 1) {
+                        rotIndex++;
+                        if (rotIndex < inputQueue.length) prepareRotationStep();
+                        else isAnimatingRot = false; 
+                    }
+                } else {
+                    let currentSpeed = isLocked ? fastSpeed : travelSpeed;
+                    if (playerObj.position.z > targetZ) {
+                        playerObj.position.z -= currentSpeed * delta;
+                        if(playerObj.position.z < targetZ) playerObj.position.z = targetZ;
+                    }
+                }
+                
+                if (playerObj.position.z <= targetZ && !isAnimatingRot) { 
+                    if (!isLocked) isLocked = true;
+                    evaluate(); 
+                }
+            }
+            renderer.render(scene, camera);
+        }
+
+        function evaluate() {
+            isEvaluating = true;
+            const isMatch = Math.abs(playerObj.quaternion.dot(targetGhost.quaternion)) > 0.995;
+            const fb = document.getElementById('feedback');
+            
+            if (isMatch) { 
+                score++; document.getElementById('score').innerText = `${score}/${totalLevels}`; 
+                fb.innerText = "BERHASIL!"; fb.className = "text-neon"; 
+            } else { 
+                fb.innerText = "GAGAL!"; fb.className = "text-red"; 
+            }
+            fb.style.opacity = 1;
+            
+            setTimeout(() => {
+                fb.style.opacity = 0; level++;
+                if (level <= totalLevels) setupLevel();
+                else { 
+                    // Logika Penentuan Norma dari File 3 Asli
+                    let norma = "";
+                    if (score < 0.4) norma = "Sangat Rendah";
+                    else if (score >= 0.4 && score <= 2) norma = "Rendah";
+                    else if (score >= 3 && score <= 6) norma = "Cukup";
+                    else if (score >= 7 && score <= 8) norma = "Tinggi";
+                    else if (score >= 9) norma = "Sangat Tinggi";
+
+                    fb.innerHTML = `SELESAI<br>
+                                    <span style="font-size: 60px;" class="text-neon">SKOR: ${score}/${totalLevels}</span><br>
+                                    <span style="font-size: 26px; font-weight: normal; margin-top: 10px; display: inline-block;">Selamat, <strong>${nicknameUser}</strong>! Kemampuan Anda termasuk <strong>${norma}</strong></span>`; 
+                    fb.style.opacity = 1; 
+                }
+            }, 1200);
+        }
+
+        window.addEventListener('resize', () => { 
+            camera.aspect = window.innerWidth / window.innerHeight; 
+            camera.updateProjectionMatrix(); 
+            renderer.setSize(window.innerWidth, window.innerHeight); 
+        });
+
+        // -----------------------------------------------------------
+        // SCRIPT 3: FUNGSI PENGHUBUNG (MENCALOK / SAKLAR UTAMA)
+        // -----------------------------------------------------------
+        function startGame() {
+            // 1. Tampilkan layer UI bawaan File 3
+            document.getElementById('ui-layer').style.display = 'block';
+            
+            // 2. Tempelkan element render 3D game utama ke layar
+            document.body.appendChild(renderer.domElement);
+            
+            // 3. Nyalakan fungsi keyboard untuk game utama
+            document.addEventListener('keydown', mainGameKeyHandler);
+            
+            // 4. Jalankan Game!
+            setupLevel();
+            animate();
+            
+            console.log("Transisi Sukses! Engine File 3 berjalan.");
+        }
+    </script>
+</body>
+</html>
